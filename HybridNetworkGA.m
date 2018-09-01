@@ -82,19 +82,16 @@ output.Output = Output;
 
     function xoverKids = uniform_cross(parents, options, nvars, FitnessFcn, ...
         unused,thisPopulation)
-
-        xoverKids = [];
-        for idx = 1:2:numel(parents)-1
-            i = parents(idx);
-            j = parents(idx+1);
-            
-            crossover_mask = randi([0,1],1,size(A,1));
-            child = thisPopulation(i, :) .* crossover_mask + thisPopulation(j,:) .* (1-crossover_mask);
-            xoverKids = [xoverKids; child];
-            
-        end
-        
+    
+        xoverKids = arrayfun(@(i) uniform_cross_child(thisPopulation(parents(i), :), thisPopulation(parents(i+1), :)), ...
+            1:2:numel(parents)-1, 'UniformOutput', false);
+        xoverKids = cell2mat(xoverKids');       
     end
+
+        function [child]= uniform_cross_child(parent_1, parent_2)
+            crossover_mask = randi([0,1],1,size(A,1));
+            child = parent_1 .* crossover_mask + parent_2 .* (1-crossover_mask);
+        end
 
     function mutationChildren = uniform_mut(parents, options, nvars, FitnessFcn, ...
         state,thisScore, thisPopulation, rate)
@@ -124,22 +121,25 @@ output.Output = Output;
         state,thisScore, thisPopulation)
         
         mutationChildren  = thisPopulation(parents, :);
+        mutationChildren = arrayfun(@(i) indegree_mut_child(mutationChildren(i, :)), ...
+            1:size(mutationChildren, 1), 'UniformOutput', false);
+        mutationChildren = cell2mat(mutationChildren');
         
-        for i = 1:size(mutationChildren, 1)
+    end
+
+        function [mutant]= indegree_mut_child(mutant)
             G = digraph();
             G = addnode(G, size(A,1));
-            [s, t] = arrayfun(@(j) constructEdges(j, mutationChildren(j)), 1:size(A,1), 'UniformOutput', false);
+            [s, t] = arrayfun(@(j) constructEdges(j, mutant(j)), 1:size(A,1), 'UniformOutput', false);
             G = addedge(G, cell2mat(s), cell2mat(t));
             centralities = centrality(G, 'indegree');
             [values,nodes] = sort(centralities);
             bottomNodes = nodes(1:size(values( values < mean(values) - std(values)),1));
-            mutationChildren(i, bottomNodes) = arrayfun(@(x) randi([1,x],1,1), mutationChildren(i, bottomNodes));
+            mutant(bottomNodes) = arrayfun(@(x) randi([1,x],1,1), mutant(bottomNodes));
             [values,nodes] = sort(centralities, 'descend');
             topNodes = nodes(1:size(values( values > mean(values) + std(values)),1));
-            mutationChildren(i, topNodes) = arrayfun(@(x) randi([x,size(A,1)-1],1,1), mutationChildren(i, topNodes));
+            mutant(topNodes) = arrayfun(@(x) randi([x,size(A,1)-1],1,1), mutant(topNodes));
         end
-        % mutationChildren(mutationChildren > size(A,1)-1) = size(A,1) -1;
-    end
 
     %% Creating final solution %%
 
