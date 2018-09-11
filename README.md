@@ -1,4 +1,4 @@
-# Hybrid Network GA for Clustering Data
+# Graph Theoretic GA for Clustering Data
 
 ## Overview
 TBD
