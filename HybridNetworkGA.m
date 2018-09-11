@@ -6,6 +6,7 @@ lb = ones(size(A,1),1);
 ub = size(A,1) .* ones(size(A,1),1)-1;
 Distance = squareform(pdist(A, metric));
 Distance(logical(eye(size(Distance)))) =Inf;
+[~, nearestNeighbors] = sort(Distance, 2);
 [~,  NN_Rank] = sort(nearestNeighbors , 2, 'ascend');
 
 opts = gaoptimset('PlotFcn', @gaplotbestf, 'CrossoverFcn', @one_point_cross, ...
