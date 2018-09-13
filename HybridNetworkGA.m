@@ -25,7 +25,7 @@ output.Output = Output;
 %% Evaluation Function %%
 
     function result = evaluationFunction(x)
-        G = digraph( double( NN_Rank <= x ));
+        G = digraph( double( NN_Rank <= x' ));
         normalized_diff = min(centrality(G, 'indegree'), centrality(G,'outdegree')) .* (centrality(G, 'indegree')- centrality(G,'outdegree'));
         result = norm(normalized_diff, 2); 
     end
@@ -124,7 +124,7 @@ output.Output = Output;
     end
 
         function [mutant]= indegree_mut_child(mutant)
-            nearest_neighbor_graph = digraph( double( NN_Rank <= mutant ));
+            nearest_neighbor_graph = digraph( double( NN_Rank <= mutant' ));
             centralities = centrality(nearest_neighbor_graph, 'indegree');
             [values,nodes] = sort(centralities);
             bottomNodes = nodes(1:size(values( values < mean(values) - std(values)),1));
@@ -145,7 +145,7 @@ output.Output = Output;
     end
 
         function [mutant]= delta_degree_mut_child(mutant)
-            G = digraph( double( NN_Rank <= mutant ));
+            G = digraph( double( NN_Rank <= mutant' ));
             delta_centralities = centrality(G, 'indegree')- centrality(G,'outdegree'); 
             bottomNodes = delta_centralities<0;
             mutant(bottomNodes) = arrayfun(@(x) randi([1,x],1,1), mutant(bottomNodes));
@@ -156,7 +156,7 @@ output.Output = Output;
 %% Creating final solution %%
 
     function [subgroups, nearest_neighbor_graph] = findFinalSolution(x, network_type)
-        nearest_neighbor_graph = digraph( double( NN_Rank <= x ));
+        nearest_neighbor_graph = digraph( double( NN_Rank <= x' ));
         G = adjacency(nearest_neighbor_graph);
 
         if strcmp(network_type,'sym_eval')
